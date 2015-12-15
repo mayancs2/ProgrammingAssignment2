@@ -104,11 +104,11 @@ cacheSolve <- function(x, ...) {
         # get data (matrix)
         data <- x$get()
 
-        # make identity matrix I
-        # rows already = cols and > 0
+        # make identity matrix I of the same dimension as the matrix
+        # rows already = cols and > 0, I is the diagonal rows x rows matrix
         identity <- diag(nrow(data))
         
-        # inverse(matrix) %*% matrix = I, solve returns inverse
+        # matrix %*% inverse(matrix) = I, solve returns inverse
         invx <- solve(data, identity, ...)
         x$setinverse(invx)
         invx
