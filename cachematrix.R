@@ -20,7 +20,10 @@
 ###############################################################################
 
 ###############################################################################
-# Store a valid non-empty square matrix and 
+# Cache a valid non-empty square matrix and 
+# return a list with named members (functions) to set/get matrix and 
+# setinverse/getinverse of matrix
+# 
 # Arguments - non-null, non-empty, square matrix
 # Returns list of methods to change it (set), retrieve it (get), 
 #     store inverse (setinverse), retrieve inverse (getinverse)
@@ -38,8 +41,12 @@ makeCacheMatrix <- function(x = matrix()) {
                 # Check if valid square matrix is specified
                 if (is.null(y) || !is.matrix(y) || nrow(y) != ncol(y)) { 
                         stop("Invalid or non-square matrix specified")
-                }                
+                }
+                
+                # set matrix data
                 x <<- y
+                
+                # reset inverse to null/not calculated
                 m <<- NULL
         }
         
@@ -52,7 +59,7 @@ makeCacheMatrix <- function(x = matrix()) {
         # Method to get cached inverse of matrix        
         getinverse <- function() m
         
-        # create list of methods with indicated member names 
+        # create and return list of methods with indicated member names 
         list(set = set, get = get,
              setinverse = setinverse,
              getinverse = getinverse)
@@ -60,11 +67,32 @@ makeCacheMatrix <- function(x = matrix()) {
 
 ###############################################################################
 # Calculate the inverse of the stored matrix, cache it and return it. 
-# Directly return if already present in cache.
+# Directly return inverse if already present in cache.
 # Assumes matrix has inverse
+#
 # Arguments - list returned by makeCacheMatrix
-# Returns inverse of cached matrix
-# 
+# Returns - inverse of cached matrix
+#
+# Usage Example:
+#      aMatrix <- matrix(c(3,1,0,2), nrow=2, ncol=2)
+#      matrixCache <- makeCacheMatrix(aMatrix)
+#      aMatrixInverse <- cacheSolve(matrixCache)
+#
+#      aMatrix
+#      [,1] [,2]
+#      [1,]    3    0
+#      [2,]    1    2
+#
+#      aMatrixInverse
+#      [,1] [,2]
+#      [1,]  0.3333  0.0
+#      [2,] -0.1667  0.5
+#
+#      aMatrixInverse %*% aMatrix
+#      [,1] [,2]
+#      [1,]    1    0
+#      [2,]    0    1
+#
 ###############################################################################
 cacheSolve <- function(x, ...) {
         
@@ -75,17 +103,14 @@ cacheSolve <- function(x, ...) {
                 return(m)
         }
         
-        # get data
+        # get data (matrix)
         data <- x$get()
 
         # make identity matrix I
         # rows already = cols and > 0
-        rows <- nrow(data)
-        # identity <- matrix(rep(0, rows*rows), nrow=rows, ncol=rows)
-        # lapply(seq_len(rows), function(i) identity[i,i] <<- 1)
-        identity <- diag(rows)
+        identity <- diag(nrow(data))
         
-        # inverse(data) %*% data = I, solve returns inverse
+        # inverse(matrix) %*% matrix = I, solve returns inverse
         m <- solve(data, identity, ...)
         x$setinverse(m)
         m
