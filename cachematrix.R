@@ -27,22 +27,32 @@
 #
 ###############################################################################
 makeCacheMatrix <- function(x = matrix()) {
-        # Check if square matrix is specified        
+        # Check if valid square matrix is specified        
         if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {      
                 stop("Invalid or empty or non-square matrix specified")
         }
         m <- NULL
         
+        # Method to Cache matrix        
         set <- function(y) {
+                # Check if valid square matrix is specified
                 if (is.null(y) || !is.matrix(y) || nrow(y) != ncol(y)) { 
                         stop("Invalid or non-square matrix specified")
                 }                
                 x <<- y
                 m <<- NULL
         }
+        
+        # Method to get cached matrix
         get <- function() x
+        
+        # Method to Cache inverse of matrix        
         setinverse <- function(inverse) m <<- inverse
+        
+        # Method to get cached inverse of matrix        
         getinverse <- function() m
+        
+        # create list of methods with indicated member names 
         list(set = set, get = get,
              setinverse = setinverse,
              getinverse = getinverse)
@@ -57,19 +67,25 @@ makeCacheMatrix <- function(x = matrix()) {
 # 
 ###############################################################################
 cacheSolve <- function(x, ...) {
+        
+        # get and check if inverse is already calculated and cached
         m <- x$getinverse()
         if(!is.null(m)) {
                 message("getting cached data")
                 return(m)
         }
-        data <- x$get()
-        rows <- nrow(data)
         
-        # make identity matrix
+        # get data
+        data <- x$get()
+
+        # make identity matrix I
+        # rows already = cols and > 0
+        rows <- nrow(data)
         # identity <- matrix(rep(0, rows*rows), nrow=rows, ncol=rows)
         # lapply(seq_len(rows), function(i) identity[i,i] <<- 1)
         identity <- diag(rows)
         
+        # inverse(data) %*% data = I, solve returns inverse
         m <- solve(data, identity, ...)
         x$setinverse(m)
         m
