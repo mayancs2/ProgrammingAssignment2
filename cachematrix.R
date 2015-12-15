@@ -30,11 +30,13 @@
 #
 ###############################################################################
 makeCacheMatrix <- function(x = matrix()) {
-        # Check if valid square matrix is specified        
+        # Check if valid non-null non-empty square matrix is specified        
         if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {      
                 stop("Invalid or empty or non-square matrix specified")
         }
-        m <- NULL
+        
+        # set inverse matrix to null/uncalculated and so uncached
+        invx <- NULL
         
         # Method to Cache matrix        
         set <- function(y) {
@@ -46,18 +48,18 @@ makeCacheMatrix <- function(x = matrix()) {
                 # set matrix data
                 x <<- y
                 
-                # reset inverse to null/not calculated
-                m <<- NULL
+                # reset inverse to null/not calculated and so uncached
+                invx <<- NULL
         }
         
         # Method to get cached matrix
         get <- function() x
         
         # Method to Cache inverse of matrix        
-        setinverse <- function(inverse) m <<- inverse
+        setinverse <- function(inverse) invx <<- inverse
         
         # Method to get cached inverse of matrix        
-        getinverse <- function() m
+        getinverse <- function() invx
         
         # create and return list of methods with indicated member names 
         list(set = set, get = get,
