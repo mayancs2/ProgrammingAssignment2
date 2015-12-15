@@ -95,10 +95,10 @@ makeCacheMatrix <- function(x = matrix()) {
 cacheSolve <- function(x, ...) {
         
         # get and check if inverse is already calculated and cached
-        m <- x$getinverse()
-        if(!is.null(m)) {
+        invx <- x$getinverse()
+        if(!is.null(invx)) {
                 message("getting cached data")
-                return(m)
+                return(invx)
         }
         
         # get data (matrix)
@@ -109,9 +109,9 @@ cacheSolve <- function(x, ...) {
         identity <- diag(nrow(data))
         
         # inverse(matrix) %*% matrix = I, solve returns inverse
-        m <- solve(data, identity, ...)
-        x$setinverse(m)
-        m
+        invx <- solve(data, identity, ...)
+        x$setinverse(invx)
+        invx
 }
 
 ###############################################################################
