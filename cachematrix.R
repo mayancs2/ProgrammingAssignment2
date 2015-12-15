@@ -30,21 +30,17 @@
 #
 ###############################################################################
 makeCacheMatrix <- function(x = matrix()) {
-        # Check if valid non-null non-empty square matrix is specified        
-        if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {      
-                stop("Invalid or empty or non-square matrix specified")
-        }
-        
+        # Check validity of matrix
+        isMatrixValid(x)
+
         # set inverse matrix to null/uncalculated and so uncached
         invx <- NULL
         
         # Method to Cache matrix        
         set <- function(y) {
-                # Check if valid square matrix is specified
-                if (is.null(y) || !is.matrix(y) || nrow(y) != ncol(y)) { 
-                        stop("Invalid or non-square matrix specified")
-                }
-                
+                # Check validity of matrix
+                isMatrixValid(y)
+
                 # set matrix data
                 x <<- y
                 
@@ -116,5 +112,19 @@ cacheSolve <- function(x, ...) {
         m <- solve(data, identity, ...)
         x$setinverse(m)
         m
+}
+
+###############################################################################
+# Check if input is non-null non-empty valid square matrix
+# Stops program if matrix is not valid
+# 
+# Arguments - matrix
+#
+###############################################################################
+isMatrixValid <- function(x) {
+        # Check if valid non-null non-empty square matrix is specified        
+        if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {      
+                stop("Invalid or empty or non-square matrix specified")
+        }
 }
 
