@@ -24,38 +24,42 @@
 # return a list with named members (functions) to set/get matrix and 
 # setinverse/getinverse of matrix
 # 
+# Name - makeCacheMatrix
 # Arguments - non-null, non-empty, square matrix
 # Returns list of methods to change it (set), retrieve it (get), 
 #     store inverse (setinverse), retrieve inverse (getinverse)
+#
+# Usage Example:
+#       See Usage example for cacheSolve, also testCacheMatrix
 #
 ###############################################################################
 makeCacheMatrix <- function(x = matrix()) {
         # Check validity of matrix
         isMatrixValid(x)
-
+        
         # set inverse matrix to null/uncalculated and so uncached
-        invx <- NULL
+        inverse_x <- NULL
         
         # Method to Cache matrix        
         set <- function(y) {
                 # Check validity of matrix
                 isMatrixValid(y)
-
+                
                 # set matrix data
                 x <<- y
                 
                 # reset inverse to null/not calculated and so uncached
-                invx <<- NULL
+                inverse_x <<- NULL
         }
         
         # Method to get cached matrix
         get <- function() x
         
         # Method to Cache inverse of matrix        
-        setinverse <- function(inverse) invx <<- inverse
+        setinverse <- function(inverse) inverse_x <<- inverse
         
         # Method to get cached inverse of matrix        
-        getinverse <- function() invx
+        getinverse <- function() inverse_x
         
         # create and return list of methods with indicated member names 
         list(set = set, get = get,
@@ -68,6 +72,7 @@ makeCacheMatrix <- function(x = matrix()) {
 # Directly return inverse if already present in cache.
 # Assumes matrix has inverse
 #
+# Name - cacheSolve
 # Arguments - list returned by makeCacheMatrix
 # Returns - inverse of cached matrix
 #
@@ -86,32 +91,34 @@ makeCacheMatrix <- function(x = matrix()) {
 #      [1,]  0.3333  0.0
 #      [2,] -0.1667  0.5
 #
-#      aMatrixInverse %*% aMatrix
+#      aMatrix %*% aMatrixInverse (or aMatrixInverse %*% aMatrix)
 #      [,1] [,2]
 #      [1,]    1    0
 #      [2,]    0    1
+#
+#      Also see testCachedMatrixInversion
 #
 ###############################################################################
 cacheSolve <- function(x, ...) {
         
         # get and check if inverse is already calculated and cached
-        invx <- x$getinverse()
-        if(!is.null(invx)) {
+        inverse_x <- x$getinverse()
+        if(!is.null(inverse_x)) {
                 message("getting cached data")
-                return(invx)
+                return(inverse_x)
         }
         
         # get data (matrix)
         data <- x$get()
-
+        
         # make identity matrix I of the same dimension as the matrix
         # rows already = cols and > 0, I is the diagonal rows x rows matrix
         identity <- diag(nrow(data))
         
         # matrix %*% inverse(matrix) = I, solve returns inverse
-        invx <- solve(data, identity, ...)
-        x$setinverse(invx)
-        invx
+        inverse_x <- solve(data, identity, ...)
+        x$setinverse(inverse_x)
+        inverse_x
 }
 
 ###############################################################################
@@ -123,8 +130,97 @@ cacheSolve <- function(x, ...) {
 ###############################################################################
 isMatrixValid <- function(x) {
         # Check if valid non-null non-empty square matrix is specified        
-        if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {      
+        if (is.null(x) || !is.matrix(x) || nrow(x) == 0 || nrow(x) != ncol(x)) {
                 stop("Invalid or empty or non-square matrix specified")
         }
 }
 
+###############################################################################
+# Check if 2 matrices are equal
+# invalid arguments fail this test
+# 
+# Arguments - first matrix, second matrix
+# Returns - TRUE on success, FALSE on failure
+#
+###############################################################################
+areMatricesEqual <- function(x, y) {
+        # Check if valid non-null non-empty square matrix is specified        
+        if (is.matrix(x) && is.matrix(y) && dim(x) == dim(y) && all(x == y)) {
+                TRUE
+        } else {
+                FALSE
+        }
+}
+
+
+###############################################################################
+# Test makeCacheMatrix and cacheSolve
+# 
+# Name - testCacheMatrix
+# Arguments - None
+# Returns - TRUE if successful, FALSE if failed
+#
+###############################################################################
+testCachedMatrixInversion <- function() {
+        
+        ######################
+        # Test main operations
+        ######################
+        
+        aMatrix <- matrix(c(3,1,0,2), nrow=2, ncol=2)
+        matrixCache <- makeCacheMatrix(aMatrix)
+        
+        # First inverse calculation, must NOT display 
+        # "getting cached data message"
+        message("Must not display \"getting cached data\" next")
+        aMatrixInverse <- cacheSolve(matrixCache)
+        
+        # check matrix %*% inverse_matrix = Identity matrix
+        if (areMatricesEqual(aMatrix %*% aMatrixInverse,  diag(nrow(aMatrix)))) {
+                message("testCacheMatrix passed")
+        } else {
+                message("testCacheMatrix failed")
+                return (FALSE)
+        }
+        
+        # Repeat invocation, must display "getting cached data" message
+        message("Must display \"getting cached data\" next")
+        aMatrixInverse <- cacheSolve(matrixCache) 
+        
+        
+        
+        
+        
+        ######################
+        # Test with a refresh 
+        # of the matrix
+        ######################
+        
+        # Make new matrix
+        aMatrix <- matrix(c(3,1,1,0,1,1,0,0,2), nrow=3, ncol=3)
+        
+        # Verify set/get        
+        matrixCache$set(aMatrix)
+        
+        if (areMatricesEqual(aMatrix, matrixCache$get())) {                
+                message("testCacheMatrix passed set/get")
+        } else {
+                message("testCacheMatrix failed set/get")
+                return (FALSE)
+        }        
+        
+        # First inverse calculation after new matrix set, must NOT display 
+        # "getting cached data message"
+        message("Must not display \"getting cached data\" next")
+        aMatrixInverse <- cacheSolve(matrixCache)  
+        
+        # check matrix %*% inverse_matrix = Identity matrix        
+        if (areMatricesEqual(aMatrix %*% aMatrixInverse,  diag(nrow(aMatrix)))) {
+                message("testCacheMatrix passed (matrix refreshed)")
+        } else {
+                message("testCacheMatrix failed (matrix refreshed)")
+                return (FALSE)
+        }
+        
+        TRUE
+}
